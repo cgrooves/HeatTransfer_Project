@@ -40,8 +40,7 @@ def convection_analysis(Tavg):
     Pr = CP.PropsSI('PRANDTL','T',Tref,'P',101325,'Air')
     nu = mu/rho
     
-    
-    Lc = 1.2 # 10.*L # Assume Lc is entire length of plate
+    Lc = 10.*L # Assume Lc is entire length of plate
     ReL = V*Lc/nu
     
     print "Reynold's Number: %e" % ReL
@@ -78,13 +77,12 @@ def Temp_Profile(x):
 # Plot from x = 0:2L
 n_pts = 100
 x_range = np.linspace(0,2*L,n_pts)
-T = [0]*n_pts
+T1 = [0]*n_pts
 
 for x in range(n_pts):
-    T[x] = Temp_Profile(x_range[x])
+    T1[x] = Temp_Profile(x_range[x])
 
-plt.plot(x_range,T)
-Tmax1 = np.max(T)
+Tmax1 = np.max(T1)
 
 Tavg2 = (T0-H)/(m*L)*np.tanh(m*L) + H
 
@@ -116,13 +114,12 @@ def Temp_Profile(x):
 # Plot from x = 0:2L
 n_pts = 100
 x_range = np.linspace(0,2*L,n_pts)
-T = [0]*n_pts
+T2 = [0]*n_pts
 
 for x in range(n_pts):
-    T[x] = Temp_Profile(x_range[x])
+    T2[x] = Temp_Profile(x_range[x])
 
-plt.plot(x_range,T)
-Tmax2 = np.max(T)
+Tmax2 = np.max(T2)
 
 Tavg2 = (T0-H)/(m*L)*np.tanh(m*L) + H
 
@@ -135,7 +132,15 @@ efficiency2 = qdp_w/qdp_solar
 
 print "Estimated efficiency: %f " % efficiency2
 
+#%% SUMMARY AND ANALYSIS
 eta_gain = (efficiency2/efficiency - 1)*100
 print "\n\nSUMMARY:\n"
 print "Increase in efficiency due to convective shield is %f %%" % eta_gain
 print "Max temp. without shield: %f K\nMax temp. with shield: %f K" % (Tmax1, Tmax2)
+print "Increase in max temperature is %f %%" % (100*(Tmax2/Tmax1 - 1))
+
+# Plots of temp. profile for shielded, unshielded (separate and together)
+x1 = np.concatenate((x_range, x_range+2*L, x_range+4*L, x_range+6*L, x_range+8*L))
+T1 = np.concatenate((T1,T1,T1,T1,T1))
+
+plt.plot(x1,T1)

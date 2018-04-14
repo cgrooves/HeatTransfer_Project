@@ -84,6 +84,7 @@ for x in range(n_pts):
     T[x] = Temp_Profile(x_range[x])
 
 plt.plot(x_range,T)
+Tmax1 = np.max(T)
 
 Tavg2 = (T0-H)/(m*L)*np.tanh(m*L) + H
 
@@ -121,6 +122,7 @@ for x in range(n_pts):
     T[x] = Temp_Profile(x_range[x])
 
 plt.plot(x_range,T)
+Tmax2 = np.max(T)
 
 Tavg2 = (T0-H)/(m*L)*np.tanh(m*L) + H
 
@@ -132,3 +134,8 @@ qdp_w = k*m*(H-T0)*np.tanh(m*L)
 efficiency2 = qdp_w/qdp_solar
 
 print "Estimated efficiency: %f " % efficiency2
+
+eta_gain = (efficiency2/efficiency - 1)*100
+print "\n\nSUMMARY:\n"
+print "Increase in efficiency due to convective shield is %f %%" % eta_gain
+print "Max temp. without shield: %f K\nMax temp. with shield: %f K" % (Tmax1, Tmax2)

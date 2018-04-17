@@ -26,6 +26,7 @@ qdp_solar = 800.
 emissivity = 0.2
 
 boltzmann = 5.67e-8
+g = 9.81
 
 
 #%% Convection analysis
@@ -36,24 +37,27 @@ def convection_analysis(Tavg):
     # Properties - calculate fluid properties at Tref and Patm using CoolProp
     rho = CP.PropsSI('D','T',Tref,'P',101325,'Air')
     mu = CP.PropsSI('V','T',Tref,'P',101325,'Air')
+    cp_air = CP.PropsSI('Cp0mass','T',Tref,'P',101325,'Air')
     kair = CP.PropsSI('conductivity','T',Tref,'P',101325,'Air')
     Pr = CP.PropsSI('PRANDTL','T',Tref,'P',101325,'Air')
+    alpha_air = kair/rho/cp_air
     nu = mu/rho
     
-    Lc = 10.*L # Assume Lc is entire length of plate
-    ReL = V*Lc/nu
+    Ltot = 10.*L # Assume Lc is entire length of plate
+    Lc = Ltot/2.
+    Ra = g*(Tavg-Tinf)*Lc**3/(Tref*nu*alpha_air)
     
-    print "Reynold's Number: %e" % ReL
-    if ReL < 5e5:
-        print "Laminar flow"
+    print "Rayleigh Number: %e" % Ra
+    if Ra < 9e7 and Ra > 1e4 and Pr > 0.7:
+        print "Using correlation (9.30)"
+        Nu = 0.54*Ra**.25
+    elif Ra < 9e11 and Ra > 1e7:
+        print "Using correlation (9.31)"
+        Nu = 0.15*Ra**(1/3.)
     else:
-        print "Turbulent flow"
+        print "No correlation selected for Rayleigh and Pr #"
+        return
         
-    if Pr < 0.6:
-        print "Prandtl number is < 0.6 - Nusselt correlation may not be reliable"
-        
-    Nu = 0.664*ReL**.5*Pr**(1/3.)
-    
     hconv = Nu*kair/Lc
     
     # Hrad - using Tavg as approximation

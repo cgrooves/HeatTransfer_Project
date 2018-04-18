@@ -1,3 +1,4 @@
+#!bin/usr/python2.7
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 13 12:06:43 2018
@@ -6,12 +7,11 @@ Created on Fri Apr 13 12:06:43 2018
 """
 
 # Solar Panel Project
-
 import numpy as np
 import matplotlib.pyplot as plt
 import CoolProp.CoolProp as CP
 
-# Known variables
+# Known variables in standard units
 Tinf = 300.
 Tsur = Tinf
 L = 10e-2
@@ -21,20 +21,30 @@ T0 = 320.
 
 V = 3.
 
-Beta = 0.95
 qdp_solar = 800.
-emissivity = 0.2
+theta = 30*np.pi/180.
+lambda_c = 2e-6
+reflect1 = 0.2 # Reflectivity values
+reflect2 = 0.8
 
 boltzmann = 5.67e-8
 g = 9.81
 
+# Derived values
+Ltot = 10.*L # Assume the picture accurately depicts the total length
+Lc = Ltot/2.
+
+# Absortivity values
+alpha1 = 1-reflect1
+alpha2 = 1-reflect2
 
 #%% Convection analysis
 def convection_analysis(Tavg):
         
+    # Calculate Tref = film temperature
     Tref = (Tinf + Tavg)/2.
     
-    # Properties - calculate fluid properties at Tref and Patm using CoolProp
+    # Properties - calculate fluid properties at Tref and Patm using CoolProp lib
     rho = CP.PropsSI('D','T',Tref,'P',101325,'Air')
     mu = CP.PropsSI('V','T',Tref,'P',101325,'Air')
     cp_air = CP.PropsSI('Cp0mass','T',Tref,'P',101325,'Air')
@@ -43,10 +53,9 @@ def convection_analysis(Tavg):
     alpha_air = kair/rho/cp_air
     nu = mu/rho
     
-    Ltot = 10.*L # Assume Lc is entire length of plate
-    Lc = Ltot/2.
     Ra = g*(Tavg-Tinf)*Lc**3/(Tref*nu*alpha_air)
     
+    # Choose a correlation according to Rayleigh number
     print "Rayleigh Number: %e" % Ra
     if Ra < 9e7 and Ra > 1e4 and Pr > 0.7:
         print "Using correlation (9.30)"
@@ -59,15 +68,32 @@ def convection_analysis(Tavg):
         return
         
     hconv = Nu*kair/Lc
+        
+    return hconv
     
-    # Hrad - using Tavg as approximation
-    hrad = emissivity*boltzmann*(Tavg + Tsur)*(Tavg**2 + Tsur**2)
+#%% Radiation Analysis
+def radiation_analysis(Tavg):
     
-    return (hconv, hrad)
-
+    Ts = Tavg
+    
+    # Solar irradiation
+    F_solar = 0.939959 # From Table 12.2 for sun as a blackbody: T=5800 K
+    alpha_solar = alpha1*F_solar + alpha2*(1-F_solar)
+    # Define beta
+    Beta = alpha_solar*np.cos(theta)
+    
+    # Define emissivity from surface
+    eps = alpha2
+    
+    # Calculate linearized radiation coefficient
+    hrad = eps*boltzmann*(Ts + Tsur)*(Ts**2 + Tsur**2)
+    
+    return (hrad, Beta)
+    
 #%% Analysis - Model Building and Verification
-Tavg1 = 329.7
-(hconv, hrad) = convection_analysis(Tavg1)
+Tavg1 = 326.4
+hconv = convection_analysis(Tavg1)
+(hrad, Beta) = radiation_analysis(Tavg1)
 
 h = hconv + hrad
 
@@ -99,11 +125,15 @@ qdp_w = k*m*(H-T0)*np.tanh(m*L)
 efficiency = qdp_w/qdp_solar
 
 print "Estimated efficiency without convection shield: %f " % efficiency
+biot = h*Lc/k
+print "Biot number is: %f " % biot
 
 #%%
 print "\n\nAnalysis with convection shield:"
-Tavg1 = 333.3
-(hconv, hrad) = convection_analysis(Tavg1)
+Tavg1 = 329.0
+hconv = convection_analysis(Tavg1)
+(hrad, Beta) = radiation_analysis(Tavg1)
+
 # Add cover-plate to absorber plate design
 h = hrad
 
@@ -135,6 +165,8 @@ qdp_w = k*m*(H-T0)*np.tanh(m*L)
 efficiency2 = qdp_w/qdp_solar
 
 print "Estimated efficiency: %f " % efficiency2
+biot = h*Lc/k
+print "Biot number is: %f " % biot
 
 #%% SUMMARY AND ANALYSIS
 eta_gain = (efficiency2/efficiency - 1)*100
@@ -146,5 +178,17 @@ print "Increase in max temperature is %f %%" % (100*(Tmax2/Tmax1 - 1))
 # Plots of temp. profile for shielded, unshielded (separate and together)
 x1 = np.concatenate((x_range, x_range+2*L, x_range+4*L, x_range+6*L, x_range+8*L))
 T1 = np.concatenate((T1,T1,T1,T1,T1))
+T2 = np.concatenate((T2,T2,T2,T2,T2))
 
-plt.plot(x1,T1)
+plt.figure(1)
+plt.plot(x1,T1,'b-',x1,T2,'r--')
+plt.xlabel('Distance Along Plate (m)')
+plt.ylabel('Plate Temperature (K)')
+plt.legend(('Unshielded','Convection Shield'))
+plt.axis([0, Ltot, T0, 335])
+
+plt.figure(2)
+plt.plot(x1,T1,'b-')
+plt.xlabel('Distance Along Plate (m)')
+plt.ylabel('Plate Temperature (K)')
+plt.axis([0, Ltot, T0, 335])

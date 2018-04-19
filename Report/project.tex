@@ -15,6 +15,8 @@
 \begin{abstract}
 \end{abstract}
 
+\tableofcontents
+
 \section{Introduction}
 
 There is a strong push today to develop more environmentally-friendly ways of generating and using energy. One of the most available and interesting sources of alternative energy is solar energy. While solar energy is abundant, it tends to be of a lower grade than other forms. As such, the harvesting of this energy should be done as efficiently as possible in order to maximize the output which is needed for various applications.
@@ -76,9 +78,9 @@ Substituting in the pertinent interactions and assumptions into (\ref{eq:consv_E
 
 Let $\beta q''_{solar} A_s = q_{solar}$, where $A_s = w\Delta x$ and $\beta$ represents the fraction of $q''_{solar}$ absorbed by the system. Rearranging (\ref{eq:consv_2}) and expressing $q_{conv}$ using Newton's Law of Cooling and $q_{rad}$ using a linearized radiation coefficient gives us:
 
-\begin{equation} \label{eq:consv_3}
-	-(q_{x + \Delta x} - q_x) + \beta q''_{solar} w\Delta x - (h_{conv} + h_{rad})w\Delta x(T(\frac{x + (x + \Delta x)}{2}) - T_{\infty}) = 0
-\end{equation}
+\begin{multline} \label{eq:consv_3}
+	-(q_{x + \Delta x} - q_x) + \beta q''_{solar} w\Delta x \\- (h_{conv} + h_{rad})w\Delta x(T(\frac{x + (x + \Delta x)}{2}) - T_{\infty}) = 0
+\end{multline}
 
 Dividing (\ref{eq:consv_3}) by $\Delta x$ and taking the limit as $x$ approaches zero, we can express the first term using Fourier's Law:
 
@@ -171,18 +173,50 @@ It can be shown that equation~(\ref{eq:long_T}) can be simplified using the hype
 \boldsymbol{T(x) = \frac{T_0 - H}{\cosh(mL)}\cosh(m(x-L)) + H}
 \end{equation}
 
-Equation~(\ref{eq:T}) is therefore the mathematical solution for the temperature distribution of the absorber plate, from one copper tube to the next. It is dependent, of course, on the quantities $m$ and $H$, which, as a reminder, are given by (\ref{eq:m}) and (\ref{eq:H}) below:
+Equation~(\ref{eq:T}) is therefore the mathematical solution for the temperature distribution of the absorber plate, from one copper tube to the next. It is dependent, of course, on the quantities $m$ and $H$, which are defined again, below:
 
-\begin{equation} \label{eq:m}
-m \equiv \sqrt{\frac{h}{kt}}
-\end{equation}
-
-\begin{equation} \label{eq:H}
-H \equiv \frac{\beta}{h}q''_{solar} + T_{\infty} \\
+\begin{equation} \label{eq:coeffs}
+m \equiv \sqrt{\frac{h}{kt}}, \qquad
+H \equiv \frac{\beta}{h}q''_{solar} + T_{\infty}, \qquad
 h \equiv h_{conv} + h_{rad}
 \end{equation}
 
-\section{Results}
+\subsubsection{Efficiency Analysis}
+
+The efficiency of the solar water heater was defined as the ratio of the rate energy is transferred to the water $q_w$ to the rate solar energy is incident on the absorbing surface $q_{solar}$. We can express this relationship as:
+
+\begin{equation} \label{eq:eff1}
+\begin{split}
+\eta & = \frac{q_w}{q_{solar}} \\
+& = \frac{q''_w A_s}{q''_{solar} A_s} \\
+& = \frac{q''_w}{q''_{solar}}
+\end{split}
+\end{equation}
+
+Using Fourier's Law, $q''_w$ is defined as:
+
+\begin{equation} \label{eq:q"w}
+\begin{split}
+q''_w & = \left. -k \frac{dT}{dx} \right|_{x=0} \\
+& = \left.-k\frac{To-H}{\cosh(mL)}m\sinh(m(x-L)) \right|_{x=0} \\
+& = \frac{km(H-T_0)}{\cosh(mL)}\sinh(mL) \\
+& = km(H-T_0)\tanh(mL)
+\end{split}
+\end{equation}
+
+Substituting (\ref{eq:q"w}) into (\ref{eq:eff1}) gives us our model for the solar water heater efficiency, below:
+
+\begin{equation} \label{eq:eta}
+\boldsymbol{\eta = \frac{km(H-T_0)}{q''_{solar}}\tanh(mL)}
+\end{equation}
+
+where $m$ and $H$ are given by equation~(\ref{eq:coeffs}).
+
+Equations~(\ref{eq:T}) and~(\ref{eq:eta}) give us the temperature distribution of the absorber plate along direction $x$ and the efficiency of the solar water heater. In order to evaluate these values numerically, however, we will need more concrete values for $h_{conv}$, $h_{rad}$, and $\beta$. The following sections, ..., outline the convection and radiation analyses techniques used to determine these values. Once these values are found, the numeric evaluation of equations~(\ref{eq:T}) and~(\ref{eq:eta}) are discussed on page \pageref{Results}.
+
+
+
+\section{Results} \label{Results}
 
 \section{Discussion}
 
